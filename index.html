@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCI Quiz — Bahria University</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0f13; --surface: #16181f; --surface2: #1e2029; --border: #2a2d38;
+    --accent: #6c63ff; --accent2: #a78bfa; --correct: #22c55e; --wrong: #ef4444;
+    --text: #e8e9f0; --muted: #7c7f90;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+  header { padding: 3rem 2rem 2rem; text-align: center; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+  header::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 500px; height: 300px; background: radial-gradient(ellipse, rgba(108,99,255,0.18) 0%, transparent 70%); pointer-events: none; }
+  .eyebrow { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent2); margin-bottom: 0.8rem; }
+  h1 { font-family: 'Instrument Serif', serif; font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 400; line-height: 1.15; margin-bottom: 0.6rem; }
+  h1 em { font-style: italic; color: var(--accent2); }
+  .subtitle { color: var(--muted); font-size: 0.95rem; max-width: 460px; margin: 0 auto 2rem; }
+  .stats-bar { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; padding: 1.2rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+  .stat { display: flex; align-items: center; gap: 0.4rem; }
+  .stat-val { font-weight: 700; font-size: 1.1rem; }
+  .stat-val.correct { color: var(--correct); }
+  .stat-val.wrong { color: var(--wrong); }
+  .stat-val.accent { color: var(--accent2); }
+  .progress-wrap { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.6rem 2rem; }
+  .progress-track { height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; width: 0%; }
+  .filter-area { padding: 1.2rem 2rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .filter-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-right: 0.3rem; }
+  .filter-btn { padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-family: inherit; font-size: 0.78rem; cursor: pointer; transition: all 0.18s; }
+  .filter-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .quiz-wrapper { max-width: 820px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .q-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.8rem; margin-bottom: 1.2rem; transition: border-color 0.2s; }
+  .q-card.answered-correct { border-color: var(--correct); }
+  .q-card.answered-wrong { border-color: var(--wrong); }
+  .q-meta { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+  .q-num { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .q-tag { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--surface2); border: 1px solid var(--border); color: var(--accent2); padding: 0.18rem 0.55rem; border-radius: 20px; }
+  .q-text { font-size: 1.02rem; font-weight: 500; margin-bottom: 1.2rem; line-height: 1.55; }
+  .options { display: grid; gap: 0.55rem; }
+  .option { display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.75rem 1rem; border-radius: 9px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 0.93rem; text-align: left; width: 100%; color: var(--text); font-family: inherit; }
+  .option:hover:not(:disabled) { border-color: var(--accent2); background: #1e2035; }
+  .option:disabled { cursor: default; }
+  .opt-letter { min-width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; flex-shrink: 0; margin-top: 1px; transition: all 0.15s; }
+  .option:hover:not(:disabled) .opt-letter { border-color: var(--accent2); color: var(--accent2); }
+  .option.correct { border-color: var(--correct); background: rgba(34,197,94,0.08); }
+  .option.correct .opt-letter { background: var(--correct); border-color: var(--correct); color: #fff; }
+  .option.wrong { border-color: var(--wrong); background: rgba(239,68,68,0.08); }
+  .option.wrong .opt-letter { background: var(--wrong); border-color: var(--wrong); color: #fff; }
+  .explanation { margin-top: 1rem; padding: 0.85rem 1rem; border-radius: 8px; background: var(--surface2); border-left: 3px solid var(--accent2); font-size: 0.87rem; color: var(--muted); display: none; }
+  .explanation.show { display: block; }
+  .explanation strong { color: var(--accent2); }
+  #results { display: none; text-align: center; padding: 3rem 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-top: 2rem; }
+  #results h2 { font-family: 'Instrument Serif', serif; font-size: 2rem; font-weight: 400; margin-bottom: 0.5rem; }
+  .score-big { font-size: 4rem; font-weight: 700; color: var(--accent2); line-height: 1; margin: 1rem 0 0.3rem; }
+  .score-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+  .restart-btn { padding: 0.75rem 2rem; border-radius: 8px; background: var(--accent); color: #fff; border: none; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: opacity 0.18s; }
+  .restart-btn:hover { opacity: 0.88; }
+  .empty { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+  @media (max-width: 600px) { .q-card { padding: 1.2rem; } h1 { font-size: 1.8rem; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="eyebrow">Bahria University · Dept. of Software Engineering</p>
+  <h1>Human Computer<br><em>Interaction</em> Quiz</h1>
+  <p class="subtitle">Test your knowledge across all HCI lectures — from memory models to GUI mistakes.</p>
+</header>
+<div class="stats-bar">
+  <div class="stat"><span class="stat-val accent" id="s-total">0</span>&nbsp;Questions</div>
+  <div class="stat"><span class="stat-val accent" id="s-answered">0</span>&nbsp;Answered</div>
+  <div class="stat"><span class="stat-val correct" id="s-correct">0</span>&nbsp;Correct</div>
+  <div class="stat"><span class="stat-val wrong" id="s-wrong">0</span>&nbsp;Wrong</div>
+</div>
+<div class="progress-wrap">
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+</div>
+<div class="filter-area">
+  <span class="filter-label">Topic:</span>
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="Introduction">Intro & HCI</button>
+  <button class="filter-btn" data-filter="Memory">Human Memory</button>
+  <button class="filter-btn" data-filter="Interaction Styles">Interaction Styles</button>
+  <button class="filter-btn" data-filter="Screen Design">Screen Design</button>
+  <button class="filter-btn" data-filter="HCI Patterns">HCI Patterns</button>
+  <button class="filter-btn" data-filter="Prototyping">Prototyping</button>
+  <button class="filter-btn" data-filter="Design Rules">Design Rules</button>
+  <button class="filter-btn" data-filter="GUI Mistakes">GUI Mistakes</button>
+</div>
+<div class="quiz-wrapper" id="quiz-container"></div>
+<script>
+const ALL_QUESTIONS = [
+  // ── INTRODUCTION (14) ──
+  {topic:"Introduction",q:"What does HCI stand for?",opts:["Human Computer Interface","Human Computer Interaction","High-Capacity Interface","Human-Centric Interaction"],ans:1,exp:"HCI = Human Computer Interaction — the study of how people interact with computing systems."},
+  {topic:"Introduction",q:"Which of the following is NOT one of the three core entities in HCI?",opts:["Human","Computer","Interaction","Database"],ans:3,exp:"The three core entities are Human, Computer, and Interaction. Databases are not part of the HCI triad."},
+  {topic:"Introduction",q:"What was the first real commercial GUI system?",opts:["Apple Macintosh","Dynabook","Xerox Star","MS-Windows"],ans:2,exp:"The Xerox Star (1981) was the first real commercial GUI. The Dynabook concept was developed at Xerox in 1968."},
+  {topic:"Introduction",q:"HCI deals with Design, Implementation, and _________ of interactive systems.",opts:["Documentation","Evaluation","Marketing","Deployment"],ans:1,exp:"HCI deals with Design, Implementation, and Evaluation of interactive systems."},
+  {topic:"Introduction",q:"The US Navy shooting down an Iranian jet in 1988 is cited as an HCI disaster because:",opts:["The radar was broken","Critical information was spread across different displays causing a wrong match","The pilots were untrained","The aircraft was too fast to track"],ans:1,exp:"Critical information was on different displays; gathering it caused a wrong match. 290 lives were lost — a classic HCI disaster."},
+  {topic:"Introduction",q:"Which year did the term 'Human-Computer Interaction' come into common use?",opts:["Late 1970s","Late 1980s","Early 1990s","Early 2000s"],ans:1,exp:"HCI came into use in the late 1980s, representing a wider scope than just 'User Interface'."},
+  {topic:"Introduction",q:"Which of the following best describes 'usability' in a product?",opts:["The product looks attractive","The product is easy to use, learn, and remember","The product has many features","The product is inexpensive"],ans:1,exp:"Usability = easy to use, easy to learn, easy to remember — supporting users to perform tasks easily and efficiently."},
+  {topic:"Introduction",q:"What does 'direct interaction' mean in HCI?",opts:["Batch processing with no feedback","Dialogs with immediate feedback","Remote server-side processing","Interaction via printed manuals"],ans:1,exp:"Direct Interaction involves dialogs with feedback (as opposed to indirect interaction like batch processing)."},
+  {topic:"Introduction",q:"The confusing punch card ballot in Florida's 2000 US presidential election is an HCI example of:",opts:["Good visual design","A poorly designed user interface causing unintended votes","Effective information architecture","Successful localization"],ans:1,exp:"Thousands of voters accidentally voted for the wrong candidate due to a confusing ballot design — proving any designed interaction is a UI."},
+  {topic:"Introduction",q:"Which of the following is NOT a related discipline of HCI?",opts:["Psychology","Linguistics","Accounting","Ergonomics"],ans:2,exp:"HCI draws on Psychology, Linguistics, Computer Science, Physiology, Philosophy, Ergonomics, and more. Accounting is not a core HCI discipline."},
+  {topic:"Introduction",q:"The Apple Macintosh GUI was introduced in:",opts:["1979","1981","1984","1990"],ans:2,exp:"The Apple Macintosh with its GUI was introduced in 1984, following Xerox Star (1981)."},
+  {topic:"Introduction",q:"In HCI, 'batch processing' is an example of:",opts:["Direct interaction","Indirect interaction","Real-time interaction","Multimodal interaction"],ans:1,exp:"Batch processing (submitting jobs and waiting for results) is indirect interaction — no real-time feedback loop."},
+  {topic:"Introduction",q:"Fitts' Law is used in HCI to model:",opts:["Memory load","The time taken to move a pointing device to a target","Colour perception","Reading speed"],ans:1,exp:"Fitts' Law: Mt = a + b·log2(D/S + 1) — models how target size and distance affect pointing time."},
+  {topic:"Introduction",q:"According to Fitts' Law, to make targets faster to select you should:",opts:["Make them smaller and further away","Make them larger and closer","Make them the same size","Change their colour"],ans:1,exp:"Fitts' Law: larger targets and shorter distances reduce selection time. Design targets as large as possible, distances as small as possible."},
+
+  // ── MEMORY (16) ──
+  {topic:"Memory",q:"What is the capacity of Short-Term Memory (STM)?",opts:["3 ± 1 chunks","7 ± 2 chunks","12 ± 3 chunks","Unlimited"],ans:1,exp:"STM has a limited capacity of 7 ± 2 chunks (Miller's Law)."},
+  {topic:"Memory",q:"Which type of memory is also known as 'working memory'?",opts:["Sensory Memory","Long-Term Memory","Short-Term Memory","Episodic Memory"],ans:2,exp:"Short-Term Memory (STM) = working memory — a scratch-pad for temporary information."},
+  {topic:"Memory",q:"Semantic memory in LTM is derived from:",opts:["Sensory memory","Episodic memory","Haptic memory","Procedural memory"],ans:1,exp:"Semantic LTM (structured facts/concepts) is derived from episodic LTM (memory of personal events)."},
+  {topic:"Memory",q:"What is 'closure' in the context of STM?",opts:["Forgetting old information","A feeling of relief when a task is complete, releasing STM load","Chunking similar items together","The recency effect in list recall"],ans:1,exp:"Closure = the sense of relief felt when a task is complete (e.g., after dialling a number), freeing STM."},
+  {topic:"Memory",q:"The Stroop Effect demonstrates that:",opts:["Colours are easier to process than words","When given two conflicting information sources, people cannot avoid reading the text","STM is unlimited","LTM decays rapidly"],ans:1,exp:"People can't avoid reading text even when instructed to focus on ink colour — showing automatic processing of familiar tasks."},
+  {topic:"Memory",q:"Which of the following is NOT a type of sensory memory?",opts:["Iconic memory","Echoic memory","Haptic memory","Semantic memory"],ans:3,exp:"Iconic (visual), Echoic (aural), Haptic (tactile) are sensory memory types. Semantic is a type of LTM."},
+  {topic:"Memory",q:"The recency effect in STM means:",opts:["Items at the beginning of a list are best remembered","Items at the end of a list are best remembered","Items in the middle are best remembered","All items are equally remembered"],ans:1,exp:"Recency effect: words at the end of a list are generally well remembered because they are still in STM."},
+  {topic:"Memory",q:"Long-Term Memory has approximately what access time?",opts:["1 nanosecond","1/10 second","1 second","10 seconds"],ans:1,exp:"LTM has slow access (~1/10 second) but huge capacity and very slow decay."},
+  {topic:"Memory",q:"Recognition is __________ than recall.",opts:["More complex","Less complex","Equally complex","Unrelated to memory"],ans:1,exp:"Recognition (identifying something seen before) is less cognitively demanding than recall (reproducing from memory unaided)."},
+  {topic:"Memory",q:"Chunking in STM refers to:",opts:["Splitting data into bytes","Grouping items into meaningful units to increase effective memory capacity","Forgetting irrelevant data","Converting STM to LTM"],ans:1,exp:"Chunking groups items into meaningful units (e.g., phone number segments), effectively increasing STM capacity beyond 7 items."},
+  {topic:"Memory",q:"Proactive inhibition in LTM forgetting means:",opts:["New information replaces old","Old information interferes with remembering new information","Emotion blocks memory","Sensory memory decays too fast"],ans:1,exp:"Proactive inhibition = old information interferes with new (e.g., still driving to your old house by habit)."},
+  {topic:"Memory",q:"Episodic memory stores:",opts:["Abstract facts and concepts","Memory of events and experiences in serial form","Procedural knowledge (how to do things)","Language grammar rules"],ans:1,exp:"Episodic memory = personal memories of events and experiences in temporal/serial order (e.g., what you had for dinner)."},
+  {topic:"Memory",q:"The primacy effect in STM means:",opts:["The most recent items are remembered best","The first items in a list are generally well remembered","The middle items are remembered best","Emotional items are remembered best"],ans:1,exp:"Primacy effect: words at the beginning of a list are well remembered, likely because they had more time to be rehearsed into LTM."},
+  {topic:"Memory",q:"Which of the following is a production rule in LTM?",opts:["Remembering a past event","IF dog is growling THEN run away","The capital of France is Paris","The sound of a doorbell"],ans:1,exp:"Production rules are IF-THEN condition/action rules representing procedural knowledge — how to do something."},
+  {topic:"Memory",q:"The 'total time hypothesis' of LTM storage states:",opts:["Memory capacity is fixed regardless of rehearsal","The amount retained is proportional to total rehearsal time","Short bursts of rehearsal are most effective","Emotional content is always retained longer"],ans:1,exp:"Total time hypothesis: the more time spent rehearsing information, the more is retained in LTM."},
+  {topic:"Memory",q:"In interface design, providing a list/menu of options instead of asking users to type from memory exploits:",opts:["Haptic memory","Proactive inhibition","Recognition over recall","The recency effect"],ans:2,exp:"Lists and menus allow recognition (seeing and identifying options) rather than recall (reproducing from memory) — far less demanding."},
+
+  // ── INTERACTION STYLES (14) ──
+  {topic:"Interaction Styles",q:"What does WIMP stand for?",opts:["Windows, Icons, Menus, Pointers","Windows, Interface, Mouse, Program","Wide Interface, Menu, Pointer","Windows, Input, Modes, Panels"],ans:0,exp:"WIMP = Windows, Icons, Menus, Pointers — the standard GUI paradigm."},
+  {topic:"Interaction Styles",q:"Which interaction style requires the most memory load on the user?",opts:["Menu-based interfaces","Natural Language interfaces","Command-line interfaces","Form-fill interfaces"],ans:2,exp:"CLI requires users to recall commands from memory (not recognize), placing the heaviest load on memory."},
+  {topic:"Interaction Styles",q:"WYSIWYG stands for:",opts:["What You See Is What You Get","What You Show Is What You Give","When You Set It What You Get","What You Select Is What You Get"],ans:0,exp:"WYSIWYG = What You See Is What You Get — content during editing appears similar to the final output."},
+  {topic:"Interaction Styles",q:"Which type of menu appears on right-click?",opts:["Pull-down menu","Pie menu","Pop-up/Context menu","Toolbar menu"],ans:2,exp:"Pop-up (context/shortcut) menus appear on right-click and provide quick access to relevant functionality."},
+  {topic:"Interaction Styles",q:"The main advantage of menu-based interfaces over CLI is:",opts:["Faster for expert users","Recognition rather than recall of commands","Uses less screen space","Requires no training"],ans:1,exp:"Menus enable recognition rather than recall, making them far more accessible for novice users."},
+  {topic:"Interaction Styles",q:"The 'hotspot' of a pointer refers to:",opts:["The colour of the cursor","The precise location to which the pointer points","The speed of cursor movement","The size of the clickable target area"],ans:1,exp:"The hotspot is the exact pixel location to which a pointer points — typically the tip of an arrow cursor."},
+  {topic:"Interaction Styles",q:"A checkbox is used for:",opts:["Selecting one of several mutually exclusive options","Multiple independent on/off choices","Triggering an action","Navigating between panels"],ans:1,exp:"Checkboxes allow multiple independent on/off choices — each checkbox is independent of others in a group."},
+  {topic:"Interaction Styles",q:"Which cursor shape typically indicates the system is processing?",opts:["Arrow pointer","Hand cursor","Hour glass / spinner","Cross-hair pointer"],ans:2,exp:"An hourglass or spinning wheel cursor indicates the system is busy and the user should wait."},
+  {topic:"Interaction Styles",q:"Pie/Radial menus differ from linear menus because:",opts:["They show fewer options","Items are equidistant from a centre point, reducing selection time","They only work with touchscreens","They always have exactly 8 items"],ans:1,exp:"Pie menus place items equidistant from the centre — all items are equally fast to reach, unlike linear menus where items further down take longer."},
+  {topic:"Interaction Styles",q:"T9 predictive text entry works by:",opts:["Using one key per letter regardless of position","Pressing each key multiple times to cycle through letters","Typing as if one key per letter and using a dictionary to guess the word","Voice recognition"],ans:2,exp:"T9: press one key per letter position; the system uses a dictionary to predict the intended word (e.g., 43556 = hello)."},
+  {topic:"Interaction Styles",q:"Natural language interfaces suffer most from:",opts:["Being too slow","Ambiguity in meaning at multiple levels","Having too few vocabulary words","Requiring special hardware"],ans:1,exp:"Natural language is inherently ambiguous (e.g., 'Wife without her husband is nothing' has multiple interpretations) — a fundamental challenge."},
+  {topic:"Interaction Styles",q:"A direct manipulation interface allows users to:",opts:["Type commands at a prompt","Manipulate objects on screen with techniques similar to the real world","Program the system using scripts","Process data in batches"],ans:1,exp:"Direct manipulation = interacting with objects directly using real-world metaphors (drag, press, resize) with immediate, visible feedback."},
+  {topic:"Interaction Styles",q:"QWERTY keyboard layout was originally designed to:",opts:["Optimise typing speed","Prevent typewriter keys from jamming","Match alphabetical order","Reduce RSI"],ans:1,exp:"QWERTY was designed to slow typists slightly and prevent mechanical typewriter keys from jamming — not for optimal speed."},
+  {topic:"Interaction Styles",q:"Which of the following is a Special Feature of the WIMP interface?",opts:["Icons","Pointers","Dialog boxes","Menus"],ans:2,exp:"Dialog boxes are a special/specific WIMP feature. Icons, Pointers, and Menus are general WIMP features."},
+
+  // ── SCREEN DESIGN (12) ──
+  {topic:"Screen Design",q:"Which alignment is recommended for decimal numbers in a data table?",opts:["Left-align","Right-align","Centre-align","Align at the decimal point"],ans:3,exp:"Numbers with decimals should align at the decimal point so magnitudes are visually comparable at a glance."},
+  {topic:"Screen Design",q:"What is a 'counter' in screen typography?",opts:["A numbered list item","The space between letters","A clickable counter widget","A type of pull-down menu"],ans:1,exp:"Counter = the space between letters. It contributes to the overall feel and readability of a layout."},
+  {topic:"Screen Design",q:"Affordance in HCI refers to:",opts:["The cost of an interface","Perceived properties of an object that suggest how it should be used","The colour scheme of a UI","The processing speed of a system"],ans:1,exp:"Affordance = perceived properties suggesting action. A mug handle 'affords' grasping; a button 'affords' clicking."},
+  {topic:"Screen Design",q:"Localization in UI design refers to:",opts:["Detecting the user's GPS coordinates","Making software suitable for different languages and cultures","Optimizing application load times","Reducing memory usage"],ans:1,exp:"Localization = adapting interfaces for specific cultures, languages, and regional conventions (date formats, text direction, etc.)."},
+  {topic:"Screen Design",q:"Dark characters on a light screen:",opts:["Reduces legibility","Increases acuity and legibility","Has no measurable effect","Is only preferred by elderly users"],ans:1,exp:"Dark text on a light background (negative contrast) increases visual acuity and improves reading legibility."},
+  {topic:"Screen Design",q:"The purpose of 'white space' in screen design is to:",opts:["Waste available screen area","Separate, structure, and highlight content","Indicate that content is loading","Show inactive areas"],ans:1,exp:"White space can separate sections, structure groups of related items, and highlight important content like quotes or graphics."},
+  {topic:"Screen Design",q:"In a form, the natural order for entering information should be:",opts:["Random to keep users engaged","Top-to-bottom or left-to-right depending on culture","Always bottom-to-top","Determined by database field order"],ans:1,exp:"Form fields should follow natural reading order (top-to-bottom for most cultures) with tab order set accordingly."},
+  {topic:"Screen Design",q:"The 'law of size constancy' in visual perception means:",opts:["Objects on screen must always be the same size","Familiar objects are perceived as constant size despite changes in visual angle (distance)","All icons must use the same pixel dimensions","Font size must remain constant across pages"],ans:1,exp:"Size constancy: we perceive known objects as the same size even when far away (visual angle changes). Context and cues help us judge size."},
+  {topic:"Screen Design",q:"For right-to-left languages (e.g., Arabic, Urdu), data should be:",opts:["Left-aligned as always","Right-aligned","Centre-aligned","Justified"],ans:1,exp:"Alignment follows reading direction. For RTL languages like Arabic, Urdu, Persian, data should align on the right side."},
+  {topic:"Screen Design",q:"Using 'leaders' (lines of dots) in a multi-column layout helps:",opts:["Decorate the table","Guide the eye across wide columns to connect related data","Replace the need for borders","Indicate hyperlinks"],ans:1,exp:"Leaders (dot lines) connect items across wide columns, helping the eye track which label belongs to which value."},
+  {topic:"Screen Design",q:"Saccades in reading are:",opts:["Stable fixation points where perception occurs","Fast eye movements between fixation points","The brain's text decoding process","Backward eye movements during re-reading"],ans:1,exp:"Saccades = fast movements of both eyes in the same direction between fixation points. Perception occurs during fixations, not saccades."},
+  {topic:"Screen Design",q:"Reading is slower in ALL CAPS because:",opts:["Capital letters are larger and take more space","Word shape clues are removed, making word recognition harder","Screens render capitals less sharply","Users are unfamiliar with uppercase"],ans:1,exp:"Word shape (the outline formed by letter heights) aids recognition. ALL CAPS gives every word a uniform rectangular shape, removing this cue."},
+
+  // ── HCI PATTERNS (16) ──
+  {topic:"HCI Patterns",q:"Which HCI pattern describes 'getting a success experience within the first few seconds'?",opts:["Reentrance","Habituation","Instant Gratification","Prospective Memory"],ans:2,exp:"Instant Gratification: let users accomplish something immediately — avoid slow screens, ads, and long instruction sequences."},
+  {topic:"HCI Patterns",q:"The Two-Panel Selector pattern is also called:",opts:["Hub and Spoke","Select and Show","One-Window Drill Down","Sequence Map"],ans:1,exp:"Two-Panel Selector = 'Select and Show' — left panel for selection list, right panel displays the selected item's content."},
+  {topic:"HCI Patterns",q:"Habituation in HCI means:",opts:["Users forget how to use a system over time","Most Frequently Used operations become reflexive/automatic","The interface adapts to user habits automatically","Users are given habit-forming rewards"],ans:1,exp:"Habituation = MFU operations become reflexive. No conscious thought needed (e.g., Ctrl+S to save, car brakes)."},
+  {topic:"HCI Patterns",q:"In the Hub and Spoke pattern, spokes are:",opts:["Main navigation links on the hub page","Self-contained sub-applications","Breadcrumb trail items","Annotated scrollbar markers"],ans:1,exp:"Spokes are self-contained UI sub-apps connected to the central hub. One way in, one way out — each isolated by function."},
+  {topic:"HCI Patterns",q:"Spatial Memory in HCI refers to:",opts:["Storing map data in RAM","People locating objects by their screen position rather than their name","The RAM usage of a UI","The visual hierarchy of a screen"],ans:1,exp:"Spatial Memory: people remember where things are on screen, not just what they're called. Rearranging UI elements breaks this memory."},
+  {topic:"HCI Patterns",q:"Breadcrumbs in navigation reveal:",opts:["The history of all previously visited pages","Where you are relative to the application's information hierarchy","A sequence map of future steps","Bookmarks for frequently visited pages"],ans:1,exp:"Breadcrumbs = context (hierarchy from top to current page), NOT history. iTunes, file explorers, and e-commerce sites use them."},
+  {topic:"HCI Patterns",q:"The Modal Panel pattern is disruptive because:",opts:["It requires an internet connection","It interrupts the user's workflow and forces an immediate decision","It uses too many colours","It only works with keyboard input"],ans:1,exp:"Modal panels halt the application and force user attention to one decision before proceeding — intentionally disruptive."},
+  {topic:"HCI Patterns",q:"Diagonal Balance in UI layout places visual weight at:",opts:["Top-left and bottom-left","Top-right and bottom-right","Upper-left and lower-right","Centre of the screen"],ans:2,exp:"Diagonal Balance: titles/tabs at upper-left, action buttons (OK, Submit, Next) at lower-right, with content between."},
+  {topic:"HCI Patterns",q:"The Reentrance pattern addresses the need for users to:",opts:["Complete tasks as fast as possible","Stop a process temporarily and resume from where they left off","Undo recent actions","Navigate hierarchies quickly"],ans:1,exp:"Reentrance: start a process, stop, come back, and resume where you left off. Example: saving a half-filled form for later."},
+  {topic:"HCI Patterns",q:"Prospective Memory in HCI design refers to:",opts:["Remembering past interactions","Planning to do something later and arranging reminders for it","The system predicting future user actions","Caching recent commands"],ans:1,exp:"Prospective Memory = planning to do something in the future and setting up a reminder (e.g., flagged email, sticky note, open window)."},
+  {topic:"HCI Patterns",q:"The One-Window Drill Down pattern is most suitable for:",opts:["Large desktop applications with unlimited screen space","Small-screen devices (phones, PDAs) where space is limited","Multi-monitor professional setups","Applications with very few pages"],ans:1,exp:"One-Window Drill Down: each page replaces the previous one in a single window — ideal for limited-screen devices."},
+  {topic:"HCI Patterns",q:"Color-Coded Sections help users by:",opts:["Making the UI more colourful and attractive only","Signposting which section the user is in through distinctive background colours","Replacing the need for navigation menus","Improving load times"],ans:1,exp:"Color-coded sections give users an instant visual cue about which section they're in, making navigation more intuitive."},
+  {topic:"HCI Patterns",q:"Intriguing Branches in HCI are:",opts:["Broken navigation links","Hyperlinks placed at unexpected points to offer optional deeper content","Error messages linking to help","Mandatory decision points"],ans:1,exp:"Intriguing Branches: optional links at relevant points in the flow, labelled to invoke curiosity ('Learn more' rather than 'Help')."},
+  {topic:"HCI Patterns",q:"An Annotated Scrollbar serves as:",opts:["A decorative sidebar element","A 'you are here' indicator and content map within a scrollable document","A replacement for breadcrumbs","A filter control for search results"],ans:1,exp:"Annotated scrollbar: static or dynamic markers on/near the scrollbar show position and content landmarks (page numbers, headings)."},
+  {topic:"HCI Patterns",q:"Multi-Level Help in HCI means:",opts:["Providing only a full manual","Offering help at several levels: inline captions, tooltips, rollover help, description help, and full help","Having three help buttons","Limiting help to FAQs only"],ans:1,exp:"Multi-Level Help meets users where they are: brief inline captions, tooltips, rollover help, description panels, and full documentation."},
+  {topic:"HCI Patterns",q:"Why does Hub and Spoke NOT connect spokes to each other directly?",opts:["To reduce development cost","To separate functionality, restrict workflow, and eliminate cognitive overload","To enforce alphabetical navigation","Because the hub needs to track all transitions"],ans:1,exp:"Spokes are isolated to separate concerns, restrict workflow to one task at a time, and reduce visual and cognitive load."},
+
+  // ── PROTOTYPING (12) ──
+  {topic:"Prototyping",q:"A horizontal prototype provides:",opts:["Full functionality for a small slice of the system","A wide range of functions with little back-end detail","Only database support","A working vertical module"],ans:1,exp:"Horizontal = broad but shallow. Wide feature coverage with no back-end implementation behind it."},
+  {topic:"Prototyping",q:"In Wizard-of-Oz prototyping:",opts:["The user interacts with a fully coded system","A human developer responds to user actions pretending to be the system","The UI is generated by a wizard tool","Only pre-defined scripts are used"],ans:1,exp:"Wizard-of-Oz: user thinks they're using a real system, but a human operator responds to their input behind the scenes."},
+  {topic:"Prototyping",q:"Which prototyping type evolves directly into the final system?",opts:["Rapid/Throw-away","Incremental","Evolutionary","Horizontal"],ans:2,exp:"Evolutionary prototyping: the prototype is continuously amended after evaluations until it becomes the final system."},
+  {topic:"Prototyping",q:"Low-fidelity prototyping uses:",opts:["Real production-quality materials","Paper, cardboard, or other non-final materials","Working software with limited functionality","High-resolution screen mockups"],ans:1,exp:"Low-fidelity = non-production materials (paper, index cards, cardboard). Quick, cheap, and easy to change early in design."},
+  {topic:"Prototyping",q:"The main danger of high-fidelity prototyping is:",opts:["It is too cheap to be taken seriously","Users may mistake it for the complete final system","It cannot be used for marketing","It requires too many physical materials"],ans:1,exp:"High-fidelity prototypes look so complete that stakeholders may think the product is done, skipping important design iterations."},
+  {topic:"Prototyping",q:"Storyboards in prototyping are:",opts:["Final UML diagrams","A series of sketches showing how a user might progress through a task","3D rendered interface models","Formal functional requirements"],ans:1,exp:"Storyboards = cartoon-like series of scene sketches showing user flow through a task — used early in design."},
+  {topic:"Prototyping",q:"A vertical prototype provides:",opts:["A wide range of features with minimal depth","Full functionality for a small slice of the system","Only visual design without back-end","All features at 50% completeness"],ans:1,exp:"Vertical = deep but narrow. Full functionality (including back-end) for just a few features or one module."},
+  {topic:"Prototyping",q:"Rapid (throw-away) prototyping aims to:",opts:["Produce the final product quickly","Collect information on requirements, recognising requirements are often inaccurate initially","Replace the need for user testing","Build a permanent first version"],ans:1,exp:"Rapid prototyping collects early requirement feedback. The prototype is then discarded — it's for learning, not delivery."},
+  {topic:"Prototyping",q:"A disadvantage of incremental prototyping is:",opts:["Users see features too early","Full system functionality may take a long time to appear, possibly missing market windows","It cannot handle large systems","It requires throwing away code"],ans:1,exp:"Incremental prototyping's long timeline before full functionality may clash with business goals like beating a competitor to market."},
+  {topic:"Prototyping",q:"Prototyping is used throughout the SDLC for:",opts:["Replacing software engineering","Product conceptualization, requirements analysis, and user acceptance","Writing production code","Database design only"],ans:1,exp:"Prototyping is appropriate at different SDLC stages: conceptualization (ideas), requirements analysis, and user acceptance testing."},
+  {topic:"Prototyping",q:"Why can't traditional software development test until implementation?",opts:["Testing tools are only available after coding","There is nothing to test until code exists, so design errors are built into the first testable artifact","Testing is too expensive early on","Requirements must be frozen before testing"],ans:1,exp:"Traditional dev paradox: implementation is expensive, and by the time you can test, design errors are already baked in and costly to fix."},
+  {topic:"Prototyping",q:"Index cards in low-fidelity prototyping are used to represent:",opts:["Database records","Individual screens — each card is one screen, often used in website development","User personas","Data flow diagrams"],ans:1,exp:"Index cards (3×5 or 5×8 inches) each represent one screen — a quick, tangible way to prototype and rearrange screen flows."},
+
+  // ── DESIGN RULES (12) ──
+  {topic:"Design Rules",q:"Which is one of Shneiderman's 8 Golden Rules?",opts:["Maximise screen density","Strive for consistency","Use as many colours as possible","Avoid all error messages"],ans:1,exp:"Shneiderman's 8 Golden Rules include: Strive for consistency, Enable shortcuts, Offer feedback, Design for closure, Error prevention, Easy reversal, Internal locus of control, Reduce STM load."},
+  {topic:"Design Rules",q:"Nielsen Heuristic #6 — 'Recognition rather than recall' means:",opts:["Users should memorise all commands","Objects, actions, and options should be visible to minimise memory load","The system should recognise the user by face","Shortcuts should require memorisation"],ans:1,exp:"Make options visible so users recognise them rather than having to recall them from memory unaided."},
+  {topic:"Design Rules",q:"ISO 9241 defines usability as:",opts:["Safety and accessibility of a product","Effectiveness, efficiency, and satisfaction with which users accomplish tasks","Aesthetic and minimalist design","Error prevention and recovery capability"],ans:1,exp:"ISO 9241: usability = 'effectiveness, efficiency and satisfaction with which users accomplish tasks'."},
+  {topic:"Design Rules",q:"Which Learnability principle allows users to extend interaction knowledge to new situations?",opts:["Predictability","Familiarity","Generalizability","Consistency"],ans:2,exp:"Generalizability = applying knowledge from one system to another (e.g., MS Word skills transferring to Excel)."},
+  {topic:"Design Rules",q:"Norman's principle 'Design for error' means:",opts:["Expect users to make mistakes and design systems to handle them","Always show detailed error codes","Prevent users from making any errors","Log all errors to a server"],ans:0,exp:"Design for error = assume errors will happen and design to prevent them, or make recovery easy when they do."},
+  {topic:"Design Rules",q:"Style guides ensure:",opts:["Marketing consistency across media","Consistency between applications within one platform environment","Database performance benchmarks","Network security standards"],ans:1,exp:"Style guides describe look-and-feel design for a platform (Apple HIG, MS UI Guidelines) to ensure consistency across apps."},
+  {topic:"Design Rules",q:"Nielsen's Heuristic #8 — 'Aesthetic and minimalist design' means:",opts:["The interface should be beautiful","Dialogues should not contain irrelevant information that competes with relevant content","Use as few colours as possible","Only text, no icons"],ans:1,exp:"Aesthetic minimalism: every extra piece of information competes with relevant content and reduces its visibility. Less is more."},
+  {topic:"Design Rules",q:"The Robustness principle of 'Recoverability' refers to:",opts:["System uptime and availability","The user's ability to take corrective action once an error is recognised","Automatic data backup","Network fault tolerance"],ans:1,exp:"Recoverability: how easily a user can fix mistakes — forward/backward recovery, undo/redo, commensurate effort to correct errors."},
+  {topic:"Design Rules",q:"'Dialogue initiative' as a Flexibility principle means:",opts:["The system always controls the conversation","Freedom from system-imposed constraints on input — user or system can initiate","Users must speak to the system","Only one input mode is available"],ans:1,exp:"Dialogue initiative = who controls the conversation. System pre-emptiveness vs. user pre-emptiveness — flexible systems allow both."},
+  {topic:"Design Rules",q:"Shneiderman's rule 'Support internal locus of control' means:",opts:["Users should feel the system controls their actions","Users should feel they are in control of the system","Control panels should be internal to the window","Only admins control the interface"],ans:1,exp:"Internal locus of control: users should feel they initiate actions and the system responds to them — not the other way around."},
+  {topic:"Design Rules",q:"Nielsen's Heuristic #4 — 'Consistency and standards' means:",opts:["All buttons must look the same globally","Users shouldn't wonder if different words or actions mean the same thing — follow platform conventions","Only one font should be used","Menus must always appear at the top"],ans:1,exp:"Consistency: follow platform conventions so users don't have to re-learn behaviour. Same words/actions should produce the same results."},
+  {topic:"Design Rules",q:"ISO 13407 guidance for human-centred design includes which principle?",opts:["Minimise user involvement to reduce costs","Active involvement of users throughout design","Design for the average user only","Freeze requirements before any design"],ans:1,exp:"ISO 13407 principles include: active user involvement, clear understanding of user/task requirements, iteration of design solutions."},
+
+  // ── GUI MISTAKES (20) ──
+  {topic:"GUI Mistakes",q:"A single radio button used alone is considered a GUI mistake because:",opts:["Radio buttons should be square, not round","A single radio button cannot be deselected and should be a checkbox instead","Radio buttons require a minimum of 10 options","Single radio buttons waste too much space"],ans:1,exp:"A single radio button is invalid — once selected it cannot be deselected. A checkbox (ON/OFF) is the correct control for a single choice."},
+  {topic:"GUI Mistakes",q:"GUI Mistake #2 — Checkbox for non-ON/OFF settings is wrong because:",opts:["Checkboxes use too much space","The unchecked state has no clear or obvious meaning for non-opposite values","Checkboxes cannot be grouped","Users can't click checkboxes on mobile"],ans:1,exp:"Checkboxes imply a clear opposite (ON/OFF, True/False). For non-opposite choices (e.g., Red vs something), the unchecked meaning is ambiguous."},
+  {topic:"GUI Mistakes",q:"The main problem with using command buttons as toggles is:",opts:["They are too small to click","They have no persistent visual state, so users can't predict current behaviour","They cannot have dynamic labels","They conflict with keyboard shortcuts"],ans:1,exp:"Command buttons appear pressed only briefly and have no persistent state — users can't tell which state the toggle is currently in."},
+  {topic:"GUI Mistakes",q:"Using tabs as radio buttons violates user expectations because:",opts:["Tabs are too wide for labels","Users expect tabs to switch view panels only, not to represent a persistent selection","Tabs cannot hold short labels","Tab controls are inaccessible"],ans:1,exp:"Tabs are mentally modelled as panel-switchers. Using them for persistent selection (like format choice) breaks this expectation and confuses users."},
+  {topic:"GUI Mistakes",q:"'Dancing tabs' occur when:",opts:["Tab icons are animated","Selecting a tab from a non-front row shifts that row to the front, causing disorienting layout changes","Tab labels change dynamically","Tabs move to follow the user's cursor"],ans:1,exp:"Dancing tabs: clicking a tab in row 2 (of a multi-row tab bar) moves it to row 1, briefly disorienting users who must then search for it."},
+  {topic:"GUI Mistakes",q:"GUI Mistake #6 — Using input controls for display-only data — the core problem is:",opts:["It slows rendering","The visual appearance implies editability when data cannot actually be changed","It wastes memory","It prevents keyboard navigation"],ans:1,exp:"Input controls (text fields, checkboxes) visually signal 'you can edit this'. Using them for read-only data misleads users."},
+  {topic:"GUI Mistakes",q:"Why are text fields unsuitable for constrained data like phone numbers?",opts:["They are too narrow","They provide no format guidance and only report errors after invalid entry","They are desktop-only controls","They require a physical keyboard"],ans:1,exp:"Text fields are unstructured: no format hints, and users are 'scolded' with error messages only after entering invalid data."},
+  {topic:"GUI Mistakes",q:"The correct way to handle dynamic menus (inapplicable commands) is to:",opts:["Remove them so the menu stays short","Grey them out (disable) rather than removing them","Animate them to draw attention","Move them to a secondary menu"],ans:1,exp:"Grey out inapplicable commands. Removing items entirely confuses users who expect to find them and think they've gone missing."},
+  {topic:"GUI Mistakes",q:"A 'poor default' like showing 'Alabama' as the default US state for all users is harmful because:",opts:["It looks unprofessional","Users who miss it get wrong results without any error message","Alabama is hard to spell","Drop-downs should not have defaults"],ans:1,exp:"Poor defaults (alphabetically first item, outdated year) are worse than no default — users who overlook them silently get wrong outcomes."},
+  {topic:"GUI Mistakes",q:"The saying 'Trying to fix up a UI at the end of development is like putting lipstick on a bulldog' means:",opts:["UI is unimportant until launch","UI must be designed from the beginning, not patched at the end","UI fixes are always successful","Bulldogs are used in interface testing"],ans:1,exp:"UI design must be integral from the start of development. Last-minute UI fixes are superficial and ineffective."},
+  {topic:"GUI Mistakes",q:"For intolerant data fields, which is a correct fix?",opts:["Accept only one strict format and reject all others","Accept common format variations and provide format examples","Remove all validation","Use text fields for all input types"],ans:1,exp:"Fix intolerance by accepting common variations, making case irrelevant, providing format examples, and structuring fields for constrained data."},
+  {topic:"GUI Mistakes",q:"Radio buttons with no initial default value violate which design principle?",opts:["Consistency","Letting users do as little as possible to get what they want","Recognition over recall","Aesthetic minimalism"],ans:1,exp:"No-default radio buttons force users to make an explicit choice every time, and once selected cannot return to 'none' — violating minimising user effort."},
+  {topic:"GUI Mistakes",q:"Mutually exclusive checkboxes (where checking one unchecks another) are problematic because:",opts:["They use too much space","They behave like radio buttons but look like checkboxes, violating user expectations","They cannot be styled","They require JavaScript to function"],ans:1,exp:"If checkboxes are mutually exclusive, they should be radio buttons. Using checkboxes for this confuses users who expect each to be independent."},
+  {topic:"GUI Mistakes",q:"GUI mistakes most often occur because GUIs are designed by:",opts:["UI professionals who rush","Programmers who lack UI expertise and face close deadlines","Marketing teams with no technical knowledge","Automated UI generation tools"],ans:1,exp:"GUIs are mostly designed by programmers who lack UI expertise and can't focus on UI details due to close deadlines — hence mistakes."},
+  {topic:"GUI Mistakes",q:"Too many tabs in a UI cause problems because:",opts:["Users get confused by too many colours","Tabs scale beyond the edge of the panel, forcing poor workarounds like dancing tabs or abbreviation","Tabs cannot be scrolled","Each tab requires a separate database query"],ans:1,exp:"Too many tabs overflow the panel edge. Solutions (wider panel, multi-row, abbreviation) all have serious usability drawbacks."},
+  {topic:"GUI Mistakes",q:"Using text fields for constrained input requires programmers to write a parser. What is the alternative?",opts:["Use radio buttons for all inputs","Use data-type-specific controls (date pickers, spinboxes, dropdowns) that eliminate parsing","Use hidden form fields","Leave validation to the server"],ans:1,exp:"Specialised controls (date pickers, sliders, dropdowns, segmented fields) constrain input to valid values, eliminating the need for a parser."},
+  {topic:"GUI Mistakes",q:"An exception where dynamic menu items (appearing/disappearing) is acceptable is:",opts:["File operations","Contextual format menus (e.g., Table menu appearing when a table is selected)","Settings menus","Help menus"],ans:1,exp:"Adding/removing entire menus (not just items) is more visible and learnable — e.g., a Table menu appearing when a table is selected in a document."},
+  {topic:"GUI Mistakes",q:"Which of the following is a valid solution to the 'too many tabs' problem?",opts:["Stack all tabs vertically","Use a scrolling list or dropdown to switch between panels instead of tabs","Colour-code the tabs","Use smaller icons on each tab"],ans:1,exp:"Replace tabs with a scrolling list or dropdown menu for switching between panels when the number of options is large."},
+  {topic:"GUI Mistakes",q:"Input controls used for display-only text should ideally be replaced with:",opts:["Disabled text fields","Plain text labels directly on the background","Hidden form fields","Read-only checkboxes"],ans:1,exp:"For display-only text, use a plain text label. It visually communicates 'not editable' and avoids misleading users."},
+  {topic:"GUI Mistakes",q:"The 'Three Golden Rules of UI Design' as summarised in the lectures emphasise:",opts:["Speed, colour, and animation","Flexible control, reducing memory load, and consistency","Security, privacy, and performance","Fonts, icons, and layout only"],ans:1,exp:"The Golden Rules: (1) Flexible control of the interface, (2) Reduce user's memory load, (3) Make the interface consistent."},
+];
+
+let answered=0,correct=0,wrong=0,currentFilter='all',visibleQuestions=[];
+
+function renderQuestions(){
+  const container=document.getElementById('quiz-container');
+  visibleQuestions = currentFilter==='all' ? ALL_QUESTIONS : ALL_QUESTIONS.filter(q=>q.topic===currentFilter);
+  document.getElementById('s-total').textContent=visibleQuestions.length;
+  if(visibleQuestions.length===0){container.innerHTML='<div class="empty"><p>No questions found for this topic.</p></div>';return;}
+  container.innerHTML=visibleQuestions.map((q,i)=>`
+    <div class="q-card" id="card-${i}" data-answered="false">
+      <div class="q-meta"><span class="q-num">#${i+1}</span><span class="q-tag">${q.topic}</span></div>
+      <p class="q-text">${q.q}</p>
+      <div class="options">
+        ${q.opts.map((o,j)=>`<button class="option" onclick="selectAnswer(${i},${j},${q.ans})" id="opt-${i}-${j}"><span class="opt-letter">${String.fromCharCode(65+j)}</span><span>${o}</span></button>`).join('')}
+      </div>
+      <div class="explanation" id="exp-${i}"><strong>Explanation:</strong> ${q.exp}</div>
+    </div>`).join('')+'<div id="results" style="display:none"><h2>Quiz Complete! 🎉</h2><div class="score-big" id="r-score">0%</div><p class="score-sub" id="r-sub"></p><button class="restart-btn" onclick="restart()">Restart Quiz</button></div>';
+  resetStats();
+}
+
+function resetStats(){
+  answered=0;correct=0;wrong=0;
+  document.getElementById('s-answered').textContent=0;
+  document.getElementById('s-correct').textContent=0;
+  document.getElementById('s-wrong').textContent=0;
+  document.getElementById('prog').style.width='0%';
+}
+
+function selectAnswer(qi,selected,correct_idx){
+  const card=document.getElementById(`card-${qi}`);
+  if(card.dataset.answered==='true')return;
+  card.dataset.answered='true';
+  const isCorrect=selected===correct_idx;
+  visibleQuestions[qi].opts.forEach((_,j)=>{
+    const btn=document.getElementById(`opt-${qi}-${j}`);
+    btn.disabled=true;
+    if(j===correct_idx)btn.classList.add('correct');
+    if(j===selected&&!isCorrect)btn.classList.add('wrong');
+  });
+  card.classList.add(isCorrect?'answered-correct':'answered-wrong');
+  document.getElementById(`exp-${qi}`).classList.add('show');
+  answered++;
+  if(isCorrect)correct++;else wrong++;
+  document.getElementById('s-answered').textContent=answered;
+  document.getElementById('s-correct').textContent=correct;
+  document.getElementById('s-wrong').textContent=wrong;
+  const pct=Math.round((answered/visibleQuestions.length)*100);
+  document.getElementById('prog').style.width=pct+'%';
+  if(answered===visibleQuestions.length)setTimeout(showResults,600);
+}
+
+function showResults(){
+  const r=document.getElementById('results');
+  r.style.display='block';
+  const pct=Math.round((correct/visibleQuestions.length)*100);
+  document.getElementById('r-score').textContent=pct+'%';
+  document.getElementById('r-sub').textContent=`You got ${correct} out of ${visibleQuestions.length} correct. ${pct>=80?'🌟 Excellent!':pct>=60?'👍 Good effort!':'📖 Keep studying!'}`;
+  r.scrollIntoView({behavior:'smooth'});
+}
+
+function restart(){renderQuestions();window.scrollTo({top:0,behavior:'smooth'});}
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter=btn.dataset.filter;
+    renderQuestions();
+  });
+});
+
+renderQuestions();
+</script>
+</body>
+</html>
